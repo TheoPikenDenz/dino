@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Game Dino Melompat</title>
+    <style>
+        /* Menghilangkan pinggiran bawaan */
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        /* Memastikan seluruh teks judul dan paragraf berada di tengah layar */
+        body {
+            text-align: center;
+			background-color: #000000;
+			color:white;
+        }
+
+        /* PANGGUNG: Area permainan */
+        #area-game {
+            width: 600px;
+            height: 200px;
+            border: 2px solid white;
+            margin: 50px auto; /* Posisi di tengah layar */
+            position: relative;
+            overflow: hidden; /* Menyembunyikan kaktus yang keluar kotak */
+            background-color: #000000;
+        }
+
+        /* PAPAN SKOR */
+        #papan-skor {
+            font-family: Arial, sans-serif;
+            font-size: 20px;
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+        }
+
+        /* AKTOR 1: Karakter Dino (Sumbu Y dan X) */
+        #dino {
+            width: 40px;
+            height: 40px;
+            /*background-color: yellow;  MISI 4: Hapus baris ini, ganti dengan background-image */
+			background-image: url(heart.png);
+			background-size: 100% 100%;
+			background-repeat:no-repeat;
+            position: absolute;
+            top: 160px; /* Menyentuh tanah di dalam kotak 200px */
+            left: 50px;
+        }
+
+        /* AKTOR 2: Rintangan Kaktus */
+        #kaktus {
+            width: 20px;
+            height: 40px;
+           /* background-color: red;  MISI 4: Hapus baris ini, ganti dengan background-image */
+		   background-image: url(bone.png);
+			background-size: 100% 100%;
+			background-repeat:no-repeat;
+            position: absolute;
+            top: 160px;
+            left: 600px; /* Mulai dari luar kotak sebelah kanan */
+        }
+
+        /* ANIMASI: Gerakan Melompat */
+        .animasi-lompat {
+            animation: lompat 0.5s;
+        }
+
+        @keyframes lompat {
+            0% { top: 160px; }
+            40% { top: 70px; } /* Titik tertinggi saat melompat */
+            50% { top: 70px; }
+            60% { top: 70px; }
+            100% { top: 160px; }
+        }
+
+        /* ANIMASI: Gerakan Kaktus Berjalan ke Kiri */
+        .animasi-jalan {
+            animation: jalan 1.5s infinite linear;
+        }
+
+        @keyframes jalan {
+            0% { left: 600px; }
+            100% { left: -20px; }
+        }
+
+        /* Teks Instruksi */
+        p {
+            font-family: Arial, sans-serif;
+            font-size: 18px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+ <body>
+    <h1>Game Dino Melompat</h1>
+
+    <!-- Area game, jika diklik akan memicu fungsi lompat() -->
+    <div id="area-game" onclick="lompat()">
+        <div id="papan-skor">Skor: <span id="skor">0</span></div>
+        <div id="dino"></div>
+        <div id="kaktus" class="animasi-jalan"></div>
+    </div>
+    
+    <p>Klik kotak game atau tekan tombol SPASI untuk melompat!</p>
+ 
+ </body>
+ <script>
+    // Memperkenalkan elemen HTML ke JavaScript
+	var dino = document.getElementById("dino");
+	var kaktus = document.getElementById("kaktus");
+	var elemenSkor = document.getElementById("skor");
+
+	var nilaiSkor = 0;
+	var gameBerakhir = false;
+	var skorDitambah = false; // Penanda agar skor tidak bertambah berkali-kali untuk 1 kaktus
+
+		// FUNGSI 1: Membuat Dino Melompat
+	function lompat() {
+    // Cek jika Dino tidak sedang melompat
+    if (dino.classList != "animasi-lompat") {
+        dino.classList.add("animasi-lompat");
+        
+        // Menghapus kelas animasi setelah 0.5 detik (500 ms)
+        setTimeout(function() {
+            dino.classList.remove("animasi-lompat");
+        }, 500); 
+    }
+}
+
+// FUNGSI 2: Deteksi Tombol Spasi
+document.addEventListener("keydown", function(event) {
+    if (event.code === "Space") {
+        lompat();
+    }
+});
+
+// FUNGSI 3: Wasit Deteksi Tabrakan (Looping setiap 10 milidetik)
+var cekTabrakan = setInterval(function() {
+    // Ambil posisi vertikal Dino (Y)
+    var posisiDinoY = parseInt(window.getComputedStyle(dino).getPropertyValue("top"));
+    // Ambil posisi horizontal Kaktus (X)
+    var posisiKaktusX = parseInt(window.getComputedStyle(kaktus).getPropertyValue("left"));
+
+    // Logika Tabrakan: Kaktus ada di dekat Dino DAN Dino tidak melompat tinggi
+    if (posisiKaktusX > 50 && posisiKaktusX < 90 && posisiDinoY >= 120) {
+        gameBerakhir = true;
+        
+        // Hentikan kaktus sejenak
+        kaktus.style.animation = "none";
+        kaktus.style.display = "none";
+        
+        // Pesan kalah 
+        alert("Yaaah, menabrak kaktus! Skor kamu: " + nilaiSkor);
+        
+        // Mulai ulang kaktus, skor, dan status
+        nilaiSkor = 0;
+        elemenSkor.innerHTML = 0;
+        skorDitambah = false;
+        kaktus.style.animation = "jalan 1.5s infinite linear";
+        kaktus.style.display = "block";
+        gameBerakhir = false;
+    } 
+    
+    // Logika Tambah Skor: Kaktus berhasil melewati Dino (posisi X di bawah 50)
+    if (posisiKaktusX < 50 && posisiKaktusX > -20 && !skorDitambah && !gameBerakhir) {
+        nilaiSkor++;
+        elemenSkor.innerHTML = nilaiSkor;
+        skorDitambah = true; // Kunci agar skor hanya bertambah 1 kali per kaktus
+    }
+
+    // Reset penanda skor saat kaktus kembali ke posisi awal di kanan (posisi X > 500)
+    if (posisiKaktusX > 500) {
+        skorDitambah = false;
+    }
+
+}, 10);
+    </script>
+</html>
